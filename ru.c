@@ -37,10 +37,9 @@ int main(void) {
             printf("Failed to allocate meory");
             exit(1);
         }
-
+        
+        printf("Total bytes read: %d: \n", bytes_read);
         buffer = right_fit_buffer;
-
-        // printf("%s\n", buffer);
 
         int cursor = 0;
         int count = 0;
@@ -49,14 +48,17 @@ int main(void) {
             char token = buffer[seeker];
 
             int token_is_not_a_delimiter = delimiters[token];
-            int seeker_did_not_exceed_bytes_read = seeker < bytes_read;
+            int seeker_did_not_exceed_bytes_read = seeker < bytes_read - 1;
 
             while(token_is_not_a_delimiter || seeker_did_not_exceed_bytes_read) {
-                printf("Character is %c\n", token);
-                printf("Character under test %d\n", token_is_not_a_delimiter);
+                // Do something with th
+                printf("At the seeker position of %d, is the character %c, a delimiter? %d\n", seeker, token, token_is_not_a_delimiter);
+
                 seeker++;
-                token_is_not_a_delimiter = buffer[seeker];
-                seeker_did_not_exceed_bytes_read = seeker < bytes_read;
+                token = buffer[seeker];
+                token_is_not_a_delimiter = delimiters[token];
+                seeker_did_not_exceed_bytes_read = seeker < bytes_read - 1;
+                printf("For the next iter: token_is_not_a_delimiter=%d | seeker_did_not_exceed_bytes_read=%d\n\n", token_is_not_a_delimiter, seeker_did_not_exceed_bytes_read);
             }
 
             cursor = seeker;
