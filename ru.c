@@ -43,25 +43,27 @@ int main(void) {
 
         int cursor = 0;
         int count = 0;
-        while (cursor < bytes_read && count < 10) {
+        while (cursor < bytes_read - 1 && count < 10) {
             int seeker = cursor;
             char token = buffer[seeker];
 
             int token_is_not_a_delimiter = delimiters[token];
             int seeker_did_not_exceed_bytes_read = seeker < bytes_read - 1;
 
-            while(token_is_not_a_delimiter || seeker_did_not_exceed_bytes_read) {
-                // Do something with th
-                printf("At the seeker position of %d, is the character %c, a delimiter? %d\n", seeker, token, token_is_not_a_delimiter);
+            while(1) {
+                // Do something with the current token/seeker
+                printf("At the seeker position of %d, is the character '%c', a delimiter? %d\n", seeker, token, token_is_not_a_delimiter);
 
+                if (seeker == bytes_read - 1 || delimiters[buffer[seeker]])  { break; }
+
+                // move the seeker
                 seeker++;
                 token = buffer[seeker];
                 token_is_not_a_delimiter = delimiters[token];
                 seeker_did_not_exceed_bytes_read = seeker < bytes_read - 1;
-                printf("For the next iter: token_is_not_a_delimiter=%d | seeker_did_not_exceed_bytes_read=%d\n\n", token_is_not_a_delimiter, seeker_did_not_exceed_bytes_read);
             }
 
-            cursor = seeker;
+            cursor = seeker + 1;
             count++;
             printf("On count %d, Cursor is %d and Seeker is %d\n", count, cursor, seeker);
         }
