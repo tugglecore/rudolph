@@ -15,8 +15,8 @@ typedef struct {
 
 int main(void) {
     int BUFFER_SIZE = 1024 * 1024;
-    // char filename[] = "users_game_status.csv";
-    char filename[] = "sample.csv";
+    char filename[] = "users_game_status.csv";
+    // char filename[] = "sample.csv";
 
     FILE *fp = fopen(filename, "r");
 
@@ -27,6 +27,7 @@ int main(void) {
 
     char delimiters[255] = { [10] = 1, [13] = 1, [44] = 1 };
     
+    // TODO: check for null pointer
     Csv *csv = malloc(sizeof(Csv) + 1000 * sizeof(Cell *));
     csv->amount_of_cells = 0;
 
@@ -49,29 +50,17 @@ int main(void) {
         int count = 0;
         while (cursor < bytes_read - 1) {
             int seeker = cursor;
-            char token = buffer[seeker];
 
-            int token_is_not_a_delimiter = delimiters[token];
-            int seeker_did_not_exceed_bytes_read = seeker < bytes_read - 1;
-
-            while(1) {
-                // Do something with the current token/seeker
-                printf("At the seeker position of %d, is the character '%c', a delimiter? %d\n", seeker, token, token_is_not_a_delimiter);
-
-                if (seeker == bytes_read - 1 || delimiters[buffer[seeker]])  { break; }
-
-                // move the seeker
+            while(seeker < bytes_read - 1 && delimiters[buffer[seeker]] == 0)
                 seeker++;
-                token = buffer[seeker];
-                token_is_not_a_delimiter = delimiters[token];
-                seeker_did_not_exceed_bytes_read = seeker < bytes_read - 1;
-            }
+
             int cell_length = seeker - cursor + 1;
             Cell *cell = malloc(sizeof(Cell) + cell_length * sizeof(char));
             cell->length = cell_length;
 
             memmove(cell->contents, &buffer[cursor], cell_length);
 
+            // TODO: Realloc csv when amount of cells execeed allocated budget
             csv->cells[csv->amount_of_cells] = cell;
             csv->amount_of_cells++;
 
