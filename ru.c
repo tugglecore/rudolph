@@ -73,6 +73,7 @@ int main(void) {
             memmove(cell->contents, &buffer[cursor], cell_length);
 
             csv->cells[csv->amount_of_cells] = cell;
+            csv->amount_of_cells++;
 
             printf("What is the cell length %d and what is it's contents: [%.*s]\n", cell_length, cell_length, cell->contents);
             printf("On count %d, Cursor is %d and Seeker is %d and the size is: %d\n", count, cursor, seeker, seeker - cursor);
@@ -82,6 +83,13 @@ int main(void) {
     }
     printf("What is the size of a char: %lu\n", sizeof(int *));
     printf("What is the size of a char: %lu\n", sizeof(Cell *));
+
+    int cell_count = csv->amount_of_cells;
+
+    for (int i = 0; i < cell_count; i++) {
+        Cell *cell = csv->cells[i];
+        printf("%.*s", cell->length, cell->contents);
+    }
 
     return 0;
 }
