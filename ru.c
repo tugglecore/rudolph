@@ -98,18 +98,18 @@ int main(void) {
     }
   }
 
-  // int cell_count = csv->amount_of_cells;
-  //
-  // for (int i = 0; i < cell_count; i++) {
-  //   Cell *cell = csv->cells[i];
-  //   printf("%.*s", cell->length, cell->contents);
-  //
-  //   if ((i % csv->row_size) == csv->row_size - 1) {
-  //     putchar('\n');
-  //   } else {
-  //     putchar(csv->separator);
-  //   }
-  // }
+  int cell_count = csv->amount_of_cells;
+
+  for (int i = 0; i < cell_count; i++) {
+    Cell *cell = csv->cells[i];
+    printf("%.*s", cell->length, cell->contents);
+
+    if ((i % csv->row_size) == csv->row_size - 1) {
+      putchar('\n');
+    } else {
+      putchar(csv->separator);
+    }
+  }
 
   return 0;
 }
