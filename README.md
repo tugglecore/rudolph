@@ -4,34 +4,24 @@
 
 ## Commands
 
-- behead
+- echo
+- stats
+- headers/behead/slice
 - concat
-- count
+- edit
+- enum
+- fill
+- fixlengths
 - datefmt
 - dedup
 - diff
-- edit
-- enum
 - exclude
 - explode/extedup
-- extsort
-- fill
-- fixlengths
-- flatten
 - foreach
-- frequency
-- headers
-- input
-- join
-- json
-- jsonl
-- partition
-- py
-- sort
-- search
+- json/jsonl
+- sort/extsort
 - select
-- slice
-- split
+- split/partition
 
 ## How so fast?
 - Mult-threaded file reading with zero kenerl buffering and I/O hints.
