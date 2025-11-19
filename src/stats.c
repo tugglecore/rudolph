@@ -1,66 +1,62 @@
-#include <stdio.h>
-#include <threads.h>
 #include "commands.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <threads.h>
 
 int collect_stats(void *arg);
 
 typedef struct {
-    int amount_of_rows;
+  int amount_of_rows;
 } Stats;
 
 void stats(int argument_count, char *arguments[]) {
-    Csv * csv = reader(arguments[0]);
+  Csv *csv = reader(arguments[0]);
 
-    thrd_t threads[csv->amount_of_partitions];
+  thrd_t threads[csv->amount_of_partitions];
 
-    for (int i = 0; i < csv->amount_of_partitions; i++) {
-        thrd_t thread;
+  for (int i = 0; i < csv->amount_of_partitions; i++) {
+    thrd_t thread;
 
-        thrd_create(
-            &thread,
-            collect_stats,
-            csv->partitions[i]
-        );
+    thrd_create(&thread, collect_stats, csv->partitions[i]);
 
-        threads[i] = thread;
-    }
+    threads[i] = thread;
+  }
 
-    int total_rows = 0;
-    for (int i = 0; i < csv->amount_of_partitions; i++) {
-        int res = 0;
-        
-        thrd_join(threads[i], &res);
+  int total_rows = 0;
+  for (int i = 0; i < csv->amount_of_partitions; i++) {
+    int res = 0;
 
-        if (res)
-            exit(1);
+    thrd_join(threads[i], &res);
 
-        Stats * stats = csv->partitions[i]->output;
-        total_rows += stats->amount_of_rows;
-    }
+    if (res)
+      exit(1);
 
-    printf("What is the total amount of rows: %d\n", total_rows);
+    Stats *stats = csv->partitions[i]->output;
+    total_rows += stats->amount_of_rows;
+  }
+
+  printf("What is the total amount of rows: %d\n", total_rows);
 }
 
 int collect_stats(void *arg) {
-    Partition *partition = (Partition *)arg;
+  Partition *partition = (Partition *)arg;
 
-    int amount_of_rows = 0;
-    int cursor = partition->start;
-    while (cursor <= partition->end) {
-        if (partition->file_contents[cursor] == '\n') {
-            amount_of_rows++;
-        }
-
-        cursor++;
+  int amount_of_rows = 0;
+  int cursor = partition->start;
+  while (cursor <= partition->end) {
+    if (partition->file_contents[cursor] == '\n') {
+      amount_of_rows++;
     }
 
-    amount_of_rows++;
+    cursor++;
+  }
 
-    Stats * stats = malloc(sizeof(Stats));
-    stats->amount_of_rows = amount_of_rows;
+  amount_of_rows++;
 
-    partition->output = stats;
+  Stats *stats = malloc(sizeof(Stats));
+  stats->amount_of_rows = amount_of_rows;
 
-    return 0;
+  partition->output = stats;
+
+  return 0;
 }

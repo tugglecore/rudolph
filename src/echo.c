@@ -1,45 +1,41 @@
-#include <stdio.h>
-#include <threads.h>
 #include "commands.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <threads.h>
 
 int normalize_csv(void *arg);
 
 typedef struct {
-    int amount_of_output;
-    char * output;
+  int amount_of_output;
+  char *output;
 } Payload;
 
 void echo(int argument_count, char *arguments[]) {
-    Csv * csv = reader(arguments[0]);
+  Csv *csv = reader(arguments[0]);
 
-    thrd_t threads[csv->amount_of_partitions];
+  thrd_t threads[csv->amount_of_partitions];
 
-    for (int i = 0; i < csv->amount_of_partitions; i++) {
-        thrd_t thread;
+  for (int i = 0; i < csv->amount_of_partitions; i++) {
+    thrd_t thread;
 
-        thrd_create(
-            &thread,
-            normalize_csv,
-            csv->partitions[i]
-        );
+    thrd_create(&thread, normalize_csv, csv->partitions[i]);
 
-        threads[i] = thread;
-    }
+    threads[i] = thread;
+  }
 
-    for (int i = 0; i < csv->amount_of_partitions; i++) {
-        int res = 0;
-        
-        thrd_join(threads[i], &res);
+  for (int i = 0; i < csv->amount_of_partitions; i++) {
+    int res = 0;
 
-        if (res)
-            exit(1);
+    thrd_join(threads[i], &res);
 
-        Payload * payload  = csv->partitions[i]->output;
-        char * output = payload->output;
-        int amount_of_output = payload->amount_of_output;
-        printf("%.*s", amount_of_output, output);
-    }
+    if (res)
+      exit(1);
+
+    Payload *payload = csv->partitions[i]->output;
+    char *output = payload->output;
+    int amount_of_output = payload->amount_of_output;
+    printf("%.*s", amount_of_output, output);
+  }
 }
 
 int normalize_csv(void *arg) {
@@ -58,15 +54,10 @@ int normalize_csv(void *arg) {
   }
 
   output[output_cursor] = '\n';
-  Payload * payload = malloc(sizeof(Payload));
-  payload->amount_of_output = output_cursor +1;
+  Payload *payload = malloc(sizeof(Payload));
+  payload->amount_of_output = output_cursor + 1;
   payload->output = output;
 
   partition->output = payload;
   return 0;
 }
-
-// typedef struct {
-//     int amount_of_output;
-//     char ** output;
-// } Payload;

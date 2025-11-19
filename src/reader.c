@@ -1,3 +1,4 @@
+#include "commands.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,12 +7,10 @@
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <threads.h>
-#include "commands.h"
-
 
 int process_csv(void *arg);
 
-Csv* reader(char * filename) {
+Csv *reader(char *filename) {
   FILE *fp = fopen(filename, "r");
 
   if (feof(fp) || ferror(fp)) {
@@ -41,7 +40,8 @@ Csv* reader(char * filename) {
 
   int amount_of_cores = get_nprocs();
 
-  Csv * csv = malloc(sizeof(Csv) + (amount_of_cores * sizeof(Partition *)));
+  Csv *csv = malloc(sizeof(Csv) + (amount_of_cores * sizeof(Partition *)));
+  csv->file_contents = mapping;
   csv->delimiter = ',';
   csv->amount_of_partitions = amount_of_cores;
 
@@ -84,7 +84,6 @@ Csv* reader(char * filename) {
 
   int start_of_data = line_cursor;
   int remaining_data_in_file = file_size - start_of_data;
-
 
   int size_of_partitions = remaining_data_in_file / amount_of_cores;
 

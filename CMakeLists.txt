@@ -8,7 +8,8 @@ target_sources(${PROJECT_NAME}
     PRIVATE 
         src/main.c
         src/reader.c
-        src/stats.c
         src/echo.c
+        src/slice.c
+        src/stats.c
 )
 target_compile_features(${PROJECT_NAME} PRIVATE c_std_17)

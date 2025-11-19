@@ -1,11 +1,14 @@
+configure:
+    cmake -B build -G "Ninja Multi-Config"
+
 build:
-    cmake --build build
+    cmake --build build --config Debug
 
 run +command:
-    build/rudolph {{command}}
+    build/Debug/rudolph {{command}}
 
 debug +command:
-    gdb build/rudolph
+    gdb build/Debug/rudolph
 
 format:
     clang-format -i src/*

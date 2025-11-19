@@ -12,17 +12,19 @@ typedef struct {
   char *file_contents;
   int start;
   int end;
-  void * output;
+  void *output;
 } Partition;
 
 typedef struct {
+  char *file_contents;
   Header *header;
   char delimiter;
   int amount_of_partitions;
-  Partition * partitions[];
+  Partition *partitions[];
 } Csv;
 
-Csv* reader(char * filename);
+Csv *reader(char *filename);
 
+void slice(int argument_count, char *argv[]);
 void stats(int argument_count, char *argv[]);
 void echo(int argument_count, char *argv[]);
