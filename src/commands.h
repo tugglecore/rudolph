@@ -10,8 +10,8 @@ typedef struct {
 
 typedef struct {
   char *file_contents;
-  int start;
-  int end;
+  long int start;
+  long int end;
   void *output;
 } Partition;
 
@@ -25,6 +25,6 @@ typedef struct {
 
 Csv *reader(char *filename);
 
-void slice(int argument_count, char *argv[]);
-void stats(int argument_count, char *argv[]);
-void echo(int argument_count, char *argv[]);
+int slice(int argument_count, char *arguments[]);
+int stats(int argument_count, char *arguments[]);
+int echo(int argument_count, char *arguments[]);

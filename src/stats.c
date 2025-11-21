@@ -3,13 +3,18 @@
 #include <stdlib.h>
 #include <threads.h>
 
+mtx_t mtx;
+
 int collect_stats(void *arg);
 
 typedef struct {
   int amount_of_rows;
 } Stats;
 
-void stats(int argument_count, char *arguments[]) {
+int stats(int argument_count, char *arguments[]) {
+  mtx_init(&mtx, mtx_plain);
+  (void)argument_count;
+
   Csv *csv = reader(arguments[0]);
 
   thrd_t threads[csv->amount_of_partitions];
@@ -28,14 +33,18 @@ void stats(int argument_count, char *arguments[]) {
 
     thrd_join(threads[i], &res);
 
-    if (res)
-      exit(1);
+    mtx_lock(&mtx);
+    if (res) {
+      return -1;
+    }
 
     Stats *stats = csv->partitions[i]->output;
     total_rows += stats->amount_of_rows;
   }
 
   printf("What is the total amount of rows: %d\n", total_rows);
+
+  return 0;
 }
 
 int collect_stats(void *arg) {
@@ -53,6 +62,7 @@ int collect_stats(void *arg) {
 
   amount_of_rows++;
 
+  // TODO: Handle case where malloc fails
   Stats *stats = malloc(sizeof(Stats));
   stats->amount_of_rows = amount_of_rows;
 

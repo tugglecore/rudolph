@@ -1,14 +1,24 @@
-configure:
-    cmake -B build -G "Ninja Multi-Config"
+is_configured := path_exists('build')
 
-build:
+configure:
+    {{is_configured}} || \
+        cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -B build -G "Ninja Multi-Config"
+
+build: configure
     cmake --build build --config Debug
 
+test: build
+    ctest --test-dir build -C Debug
+
+# dev:
+#     watchexec 
+
 run +command:
-    build/Debug/rudolph {{command}}
+    build/bin/Debug/rudolph {{command}}
 
 debug +command:
     gdb build/Debug/rudolph
 
 format:
-    clang-format -i src/*
+    clang-format -i --sort-includes src/*.[c,h] tests/*.[c,h]
+

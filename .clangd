@@ -1,0 +1,13 @@
+CompileFlags:
+  Add: [-xc, -std=c17, -Wall, -Wextra]
+
+Diagnostics:
+  ClangTidy:
+    Add: [performance*, modernize*, bugprone*, clang-analyzer*, concurrency*, readability*]
+    Remove: [
+      readability-function-cognitive-complexity,
+      readability-identifier-length,
+      readability-magic-numbers
+    ]
+    CheckOptions:
+      readability-identifier-naming.VariableCase: lower_case

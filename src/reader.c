@@ -6,7 +6,6 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
-#include <threads.h>
 
 int process_csv(void *arg);
 
@@ -15,7 +14,8 @@ Csv *reader(char *filename) {
 
   if (feof(fp) || ferror(fp)) {
     printf("An error occurred");
-    exit(1);
+    // exit(1);
+    return NULL;
   }
 
   int fd = fileno(fp);
@@ -27,7 +27,7 @@ Csv *reader(char *filename) {
     // TODO: Returning null pointer good practice?
     return NULL;
   }
-  int file_size = file_attributes->st_size;
+  long int file_size = file_attributes->st_size;
 
   char *mapping;
 
@@ -46,7 +46,7 @@ Csv *reader(char *filename) {
   csv->amount_of_partitions = amount_of_cores;
 
   // TODO: realloc Headers with > 100 headings
-  Header *header = malloc(sizeof(Header) + 100 * sizeof(Heading *));
+  Header *header = malloc(sizeof(Header) + (100 * sizeof(Heading *)));
   header->amount_of_headings = 0;
 
   int line_cursor = 0;
@@ -59,14 +59,16 @@ Csv *reader(char *filename) {
     int heading_cursor = line_cursor;
 
     do {
-      if (mapping[heading_cursor] == ',' || mapping[heading_cursor] == '\n')
+      if (mapping[heading_cursor] == ',' || mapping[heading_cursor] == '\n') {
         break;
+      }
+
     } while (heading_cursor++, heading_cursor < file_size);
 
     // TODO: Handle empty headings
     int heading_size = heading_cursor - start_of_heading;
 
-    Heading *heading = malloc(sizeof(Heading) + sizeof(char) * heading_size);
+    Heading *heading = malloc(sizeof(Heading) + (sizeof(char) * heading_size));
 
     heading->size = heading_size;
 
@@ -83,13 +85,12 @@ Csv *reader(char *filename) {
   csv->header = header;
 
   int start_of_data = line_cursor;
-  int remaining_data_in_file = file_size - start_of_data;
+  long int remaining_data_in_file = file_size - start_of_data;
 
-  int size_of_partitions = remaining_data_in_file / amount_of_cores;
+  long int size_of_partitions = remaining_data_in_file / amount_of_cores;
 
-  Partition *partitions[amount_of_cores];
   int amount_of_threads_created = 0;
-  int partition_start_cursor = line_cursor;
+  long int partition_start_cursor = line_cursor;
 
   while (partition_start_cursor < file_size) {
     Partition *partition = malloc(sizeof(Partition));
@@ -104,9 +105,9 @@ Csv *reader(char *filename) {
       }
     } else {
 
-      int estimated_partition_endpoint =
+      long int estimated_partition_endpoint =
           partition_start_cursor + size_of_partitions;
-      int partition_end_cursor = estimated_partition_endpoint;
+      long int partition_end_cursor = estimated_partition_endpoint;
 
       // TODO: Last partition no matter what; so create thread!
       if (partition_end_cursor >= file_size) {
@@ -118,12 +119,14 @@ Csv *reader(char *filename) {
       bool partition_end_cursor_went_forward = false;
 
       while (true) {
-        if (mapping[partition_end_cursor] == '\n')
+        if (mapping[partition_end_cursor] == '\n') {
           break;
+        }
 
         // end_cursor is at last position in file
-        if (partition_end_cursor + 1 == file_size)
+        if (partition_end_cursor + 1 == file_size) {
           break;
+        }
 
         partition_end_cursor += alteration;
 
@@ -155,8 +158,9 @@ Csv *reader(char *filename) {
     csv->partitions[amount_of_threads_created] = partition;
     amount_of_threads_created++;
 
-    if (amount_of_threads_created == amount_of_cores)
+    if (amount_of_threads_created == amount_of_cores) {
       break;
+    }
   }
 
   return csv;

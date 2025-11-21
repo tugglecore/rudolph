@@ -17,23 +17,24 @@ typedef struct {
   RowEdge *row_edges[];
 } Payload;
 
-void slice(int argument_count, char *arguments[]) {
+int slice(int argument_count, char *arguments[]) {
   if (argument_count < 1) {
     printf("Not enough options passed to slice command\n");
-    exit(1);
+    return -1;
+    // exit(1);
   }
 
   Csv *csv = reader(arguments[0]);
 
   bool has_start = false;
-  long int slice_start = 0;
+  long unsigned int slice_start = 0;
 
   bool has_end = false;
-  long int slice_end = 0;
+  long unsigned int slice_end = 0;
 
   bool has_length = false;
-  long int slice_length = 0;
 
+  /// readability-identifier-length
   int i = 1;
   while (i < argument_count) {
     char *argument = arguments[i];
@@ -41,13 +42,15 @@ void slice(int argument_count, char *arguments[]) {
     if (strcmp(argument, "-s") == 0 || strcmp(argument, "--start") == 0) {
       if (i + 1 >= argument_count) {
         printf("invalid option: start requires a value\n");
-        exit(1);
+        return -1;
+        // exit(1);
       }
 
       has_start = true;
       i++;
       char *tail;
 
+      // readability-magic-number
       slice_start = strtoul(arguments[i], &tail, 10);
 
       if (arguments[i] == tail) {
@@ -58,24 +61,26 @@ void slice(int argument_count, char *arguments[]) {
     if (strcmp(argument, "-l") == 0 || strcmp(argument, "--length") == 0) {
       if (i + 1 >= argument_count) {
         printf("invalid option: start requires a value\n");
-        exit(1);
+        return -1;
+        // exit(1);
       }
 
       has_length = true;
       i++;
-      char *tail;
+      // char *tail;
 
-      slice_length = strtoul(arguments[i], &tail, 10);
+      // slice_length = strtoul(arguments[i], &tail, 10);
 
-      if (arguments[i] == tail) {
-        printf("We got a bo bo");
-      }
+      // if (arguments[i] == tail) {
+      //   printf("We got a bo bo");
+      // }
     }
 
     if (strcmp(argument, "-e") == 0 || strcmp(argument, "--end") == 0) {
       if (i + 1 >= argument_count) {
         printf("invalid option: start requires a value\n");
-        exit(1);
+        // exit(1);
+        return 1;
       }
 
       has_end = true;
@@ -95,7 +100,8 @@ void slice(int argument_count, char *arguments[]) {
   if (has_start && has_length && has_end) {
     printf("Invalid set of options: can only specify 1 or 2 options of [start, "
            "lenght, end]\n");
-    exit(1);
+    return 1;
+    // exit(1);
   }
 
   thrd_t threads[csv->amount_of_partitions];
@@ -110,7 +116,7 @@ void slice(int argument_count, char *arguments[]) {
 
   int index_of_slice_first_row = 0;
   int index_of_slice_last_row = 0;
-  int first_row_of_partition = 1;
+  unsigned int first_row_of_partition = 1;
   for (int i = 0; i < csv->amount_of_partitions; i++) {
     int res = 0;
 
@@ -118,13 +124,14 @@ void slice(int argument_count, char *arguments[]) {
 
     if (res) {
       printf("Is the response");
-      exit(1);
+      // exit(1);
+      return 1;
     }
 
     Partition *partition = csv->partitions[i];
     Payload *payload = partition->output;
 
-    int partition_last_row =
+    unsigned int partition_last_row =
         (first_row_of_partition - 1) + payload->amount_of_rows;
 
     if (slice_start >= first_row_of_partition &&
@@ -145,10 +152,13 @@ void slice(int argument_count, char *arguments[]) {
     first_row_of_partition = partition_last_row + 1;
   }
 
-  int amount_of_output = index_of_slice_last_row - index_of_slice_first_row;
+  int amount_of_output =
+      (index_of_slice_last_row - index_of_slice_first_row) + 1;
 
-  printf("%.*s", amount_of_output,
+  printf("%.*s\n", amount_of_output,
          &csv->file_contents[index_of_slice_first_row]);
+
+  return -1;
 }
 
 int find_row_edges(void *arg) {
@@ -170,9 +180,9 @@ int find_row_edges(void *arg) {
     while (endpoint_cursor <= partition->end) {
       if (file_contents[endpoint_cursor] == '\n') {
         break;
-      } else {
-        endpoint_cursor++;
       }
+
+      endpoint_cursor++;
     }
 
     if (file_contents[endpoint_cursor] == '\n') {
@@ -187,7 +197,8 @@ int find_row_edges(void *arg) {
           payload, sizeof(Payload) + (row_buffer_size * sizeof(RowEdge)));
 
       if (bigger_payload == NULL) {
-        exit(1);
+        // exit(1);
+        return 1;
       }
 
       payload = bigger_payload;
@@ -203,7 +214,8 @@ int find_row_edges(void *arg) {
       realloc(payload, sizeof(Payload) + (amount_of_rows * sizeof(RowEdge)));
 
   if (smaller_payload == NULL) {
-    exit(1);
+    // exit(1);
+    return 1;
   }
 
   payload = smaller_payload;

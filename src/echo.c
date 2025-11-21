@@ -10,7 +10,8 @@ typedef struct {
   char *output;
 } Payload;
 
-void echo(int argument_count, char *arguments[]) {
+int echo(int argument_count, char *arguments[]) {
+  (void)argument_count;
   Csv *csv = reader(arguments[0]);
 
   thrd_t threads[csv->amount_of_partitions];
@@ -28,14 +29,18 @@ void echo(int argument_count, char *arguments[]) {
 
     thrd_join(threads[i], &res);
 
-    if (res)
-      exit(1);
+    if (res) {
+      // exit(1);
+      return 1;
+    }
 
     Payload *payload = csv->partitions[i]->output;
     char *output = payload->output;
     int amount_of_output = payload->amount_of_output;
     printf("%.*s", amount_of_output, output);
   }
+
+  return 1;
 }
 
 int normalize_csv(void *arg) {
