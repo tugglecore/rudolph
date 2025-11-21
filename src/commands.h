@@ -25,6 +25,7 @@ typedef struct {
 
 Csv *reader(char *filename);
 
+int rudolph(int argc, char *argv[]);
 int slice(int argument_count, char *arguments[]);
 int stats(int argument_count, char *arguments[]);
 int echo(int argument_count, char *arguments[]);

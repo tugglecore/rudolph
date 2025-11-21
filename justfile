@@ -8,10 +8,10 @@ build: configure
     cmake --build build --config Debug
 
 test: build
-    ctest --test-dir build -C Debug
+    ctest --output-on-failure --test-dir build -C Debug
 
-# dev:
-#     watchexec 
+dev:
+    watchexec just test 
 
 run +command:
     build/bin/Debug/rudolph {{command}}
