@@ -11,13 +11,13 @@ test: build
     ctest --output-on-failure --test-dir build -C Debug
 
 dev:
-    watchexec just test 
+    watchexec 'clear && just test'
 
 run +command:
     build/bin/Debug/rudolph {{command}}
 
 debug +command:
-    gdb build/Debug/rudolph
+    gdb build/bin/Debug/rudolph
 
 format:
     clang-format -i --sort-includes src/*.[c,h] tests/*.[c,h]

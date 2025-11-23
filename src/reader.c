@@ -6,11 +6,15 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
-
-int process_csv(void *arg);
+#include <unistd.h>
 
 Csv *reader(char *filename) {
   FILE *fp = fopen(filename, "r");
+
+  if (fp == NULL) {
+    perror("What is wrong");
+    printf("We got a NULL pointer");
+  }
 
   if (feof(fp) || ferror(fp)) {
     printf("An error occurred");

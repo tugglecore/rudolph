@@ -50,7 +50,7 @@ int normalize_csv(void *arg) {
   char *output = malloc((partition->end - partition->start) + 1 + 1);
 
   int output_cursor = 0;
-  int input_cursor = partition->start;
+  long int input_cursor = partition->start;
 
   while (input_cursor <= partition->end) {
     output[output_cursor] = partition->file_contents[input_cursor];

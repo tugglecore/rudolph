@@ -7,7 +7,7 @@
 #define STATS 210728208916
 #define ECHO 6385181892
 
-const char * version = "0.1";
+const char *version = "0.1";
 
 void help(const char *command);
 
@@ -29,9 +29,9 @@ int rudolph(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (strcmp(argv[0], "version") == 0) {
-      printf("version %s\n", version);
-      return EXIT_SUCCESS;
+  if (strcmp(argv[0], "--version") == 0) {
+    printf("version %s\n", version);
+    return EXIT_SUCCESS;
   }
 
   if (strcmp(argv[0], "--help") == 0 || strcmp(argv[0], "help") == 0) {
@@ -49,10 +49,9 @@ int rudolph(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  int argument_count = argc - 2;
-  char **arguments = &argv[2];
-
-  char *command = argv[1];
+  char *command = argv[0];
+  int argument_count = argc - 1;
+  char **arguments = argv + 1;
   switch (hash(command)) {
   case SLICE:
     printf("Running slice...\n");
