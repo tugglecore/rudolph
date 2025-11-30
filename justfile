@@ -22,3 +22,10 @@ debug +command:
 format:
     clang-format -i --sort-includes src/*.[c,h] tests/*.[c,h]
 
+cppcheck:
+    cppcheck --cppcheck-build-dir=build --check-level=exhaustive --language=c --enable=warning,style,performance,information src/*.c
+
+clang-tidy:
+    run-clang-tidy -p=build src/*.[c,h]
+
+analyze: cppcheck && clang-tidy

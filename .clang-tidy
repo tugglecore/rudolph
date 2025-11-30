@@ -1,0 +1,2 @@
+Checks: 'cert*,performance*,modernize*,bugprone*,clang-analyzer*,concurrency*,readability*,-readability-function-cognitive-complexity,-readability-identifier-length,-readability-magic-numbers,-modernize-macro-to-enum'
+WarningsAsErrors: 'cert*,performance*,modernize*,bugprone*,clang-analyzer*,concurrency*,readability*,-readability-function-cognitive-complexity,-readability-identifier-length,-readability-magic-numbers'

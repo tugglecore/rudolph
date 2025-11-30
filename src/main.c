@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 
 int rudolph(unsigned int argc, char *argv[]);

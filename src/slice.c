@@ -1,4 +1,5 @@
 #include "commands.h"
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,8 +9,8 @@
 int find_row_edges(void *arg);
 
 typedef struct {
-  int startpoint;
-  int endpoint;
+  long int startpoint;
+  long int endpoint;
 } RowEdge;
 
 typedef struct {
@@ -21,7 +22,6 @@ int slice(int argument_count, char *arguments[]) {
   if (argument_count < 1) {
     printf("Not enough options passed to slice command\n");
     return -1;
-    // exit(1);
   }
 
   Csv *csv = reader(arguments[0]);
@@ -34,23 +34,20 @@ int slice(int argument_count, char *arguments[]) {
 
   bool has_length = false;
 
-  /// readability-identifier-length
   int i = 1;
   while (i < argument_count) {
-    char *argument = arguments[i];
+    const char *argument = arguments[i];
 
     if (strcmp(argument, "-s") == 0 || strcmp(argument, "--start") == 0) {
       if (i + 1 >= argument_count) {
         printf("invalid option: start requires a value\n");
         return -1;
-        // exit(1);
       }
 
       has_start = true;
       i++;
       char *tail;
 
-      // readability-magic-number
       slice_start = strtoul(arguments[i], &tail, 10);
 
       if (arguments[i] == tail) {
@@ -67,13 +64,6 @@ int slice(int argument_count, char *arguments[]) {
 
       has_length = true;
       i++;
-      // char *tail;
-
-      // slice_length = strtoul(arguments[i], &tail, 10);
-
-      // if (arguments[i] == tail) {
-      //   printf("We got a bo bo");
-      // }
     }
 
     if (strcmp(argument, "-e") == 0 || strcmp(argument, "--end") == 0) {
@@ -106,25 +96,37 @@ int slice(int argument_count, char *arguments[]) {
 
   thrd_t threads[csv->amount_of_partitions];
 
-  for (int i = 0; i < csv->amount_of_partitions; i++) {
+  for (int j = 0; j < csv->amount_of_partitions; j++) {
     thrd_t thread;
 
-    thrd_create(&thread, find_row_edges, csv->partitions[i]);
+    int thread_creation_status =
+        thrd_create(&thread, find_row_edges, csv->partitions[j]);
 
-    threads[i] = thread;
+    if (thread_creation_status != thrd_nomem) {
+      return -1;
+    }
+
+    if (thread_creation_status == thrd_error) {
+      return -1;
+    }
+
+    threads[j] = thread;
   }
 
-  int index_of_slice_first_row = 0;
-  int index_of_slice_last_row = 0;
+  long int index_of_slice_first_row = 0;
+  long int index_of_slice_last_row = 0;
   unsigned int first_row_of_partition = 1;
-  for (int i = 0; i < csv->amount_of_partitions; i++) {
+  for (int k = 0; k < csv->amount_of_partitions; k++) {
     int res = 0;
 
-    thrd_join(threads[i], &res);
+    int thread_join_status = thrd_join(threads[k], &res);
+
+    if (thread_join_status == thrd_error) {
+      return -1;
+    }
 
     if (res) {
       printf("Is the response");
-      // exit(1);
       return 1;
     }
 
@@ -136,7 +138,7 @@ int slice(int argument_count, char *arguments[]) {
 
     if (slice_start >= first_row_of_partition &&
         slice_start <= partition_last_row) {
-      RowEdge *row_edge =
+      const RowEdge *row_edge =
           payload->row_edges[slice_start - first_row_of_partition];
 
       index_of_slice_first_row = row_edge->startpoint;
@@ -144,7 +146,7 @@ int slice(int argument_count, char *arguments[]) {
 
     if (slice_end >= first_row_of_partition &&
         slice_end <= partition_last_row) {
-      RowEdge *row_edge =
+      const RowEdge *row_edge =
           payload->row_edges[slice_end - first_row_of_partition];
       index_of_slice_last_row = row_edge->endpoint;
     }
@@ -152,10 +154,13 @@ int slice(int argument_count, char *arguments[]) {
     first_row_of_partition = partition_last_row + 1;
   }
 
-  int amount_of_output =
+  // TODO: Need to find a way to print out a slice that
+  // is bigger than an int ~ 2 GB.
+  // TODO: Gurrantee this is unsigned
+  long unsigned int amount_of_output =
       (index_of_slice_last_row - index_of_slice_first_row) + 1;
 
-  printf("%.*s\n", amount_of_output,
+  printf("%.*s\n", (int)amount_of_output,
          &csv->file_contents[index_of_slice_first_row]);
 
   return -1;
@@ -169,13 +174,18 @@ int find_row_edges(void *arg) {
 
   int amount_of_rows = 0;
 
-  char *file_contents = partition->file_contents;
-  int cursor = partition->start;
+  const char *file_contents = partition->file_contents;
+  long int cursor = partition->start;
   while (cursor <= partition->end) {
     RowEdge *row_edge = malloc(sizeof(RowEdge));
+    if (row_edge == NULL) {
+      free(payload);
+      return -1;
+    }
+
     row_edge->startpoint = cursor;
 
-    int endpoint_cursor = cursor;
+    long int endpoint_cursor = cursor;
 
     while (endpoint_cursor <= partition->end) {
       if (file_contents[endpoint_cursor] == '\n') {
@@ -214,7 +224,7 @@ int find_row_edges(void *arg) {
       realloc(payload, sizeof(Payload) + (amount_of_rows * sizeof(RowEdge)));
 
   if (smaller_payload == NULL) {
-    // exit(1);
+      free(payload);
     return 1;
   }
 

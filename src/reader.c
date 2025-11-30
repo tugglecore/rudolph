@@ -8,30 +8,47 @@
 #include <sys/sysinfo.h>
 #include <unistd.h>
 
-Csv *reader(char *filename) {
+Csv *reader(const char *filename) {
   FILE *fp = fopen(filename, "r");
 
   if (fp == NULL) {
-    perror("What is wrong");
-    printf("We got a NULL pointer");
+    perror("Failed to open given file");
+    return NULL;
   }
 
   if (feof(fp) || ferror(fp)) {
     printf("An error occurred");
     // exit(1);
+    int file_close_status = fclose(fp);
+
+    if (file_close_status == EOF) {
+      printf(stderr, "Failed to close file");
+      return NULL;
+    }
     return NULL;
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
   int fd = fileno(fp);
+#pragma GCC diagnostic pop
+  int file_close_status = fclose(fp);
+
+  if (file_close_status == EOF) {
+    return NULL;
+  }
 
   struct stat *file_attributes = malloc(sizeof(struct stat));
 
   if (fstat(fd, file_attributes)) {
+    free(file_attributes);
     perror("fstat");
     // TODO: Returning null pointer good practice?
     return NULL;
   }
   long int file_size = file_attributes->st_size;
+
+  free(file_attributes);
 
   char *mapping;
 
@@ -45,15 +62,40 @@ Csv *reader(char *filename) {
   int amount_of_cores = get_nprocs();
 
   Csv *csv = malloc(sizeof(Csv) + (amount_of_cores * sizeof(Partition *)));
+  if (csv == NULL) {
+    return NULL;
+  }
   csv->file_contents = mapping;
-  csv->delimiter = ',';
   csv->amount_of_partitions = amount_of_cores;
 
   // TODO: realloc Headers with > 100 headings
   Header *header = malloc(sizeof(Header) + (100 * sizeof(Heading *)));
+  if (header == NULL) {
+    free(csv);
+    return NULL;
+  }
   header->amount_of_headings = 0;
 
+  csv->delimiter = '\0';
   int line_cursor = 0;
+
+  while (line_cursor < file_size) {
+    if (mapping[line_cursor] == ',' || mapping[line_cursor] == ';') {
+      csv->delimiter = mapping[line_cursor];
+      break;
+    }
+
+    line_cursor++;
+  }
+
+  if (csv->delimiter == '\0') {
+    free(header);
+    free(csv);
+    printf("Failed to parse file.\n");
+    return NULL;
+  }
+
+  line_cursor = 0;
 
   while (line_cursor < file_size) {
     // TODO: Handle carriage returns
@@ -73,9 +115,15 @@ Csv *reader(char *filename) {
     int heading_size = heading_cursor - start_of_heading;
 
     Heading *heading = malloc(sizeof(Heading) + (sizeof(char) * heading_size));
+    if (heading == NULL) {
+      free(header);
+      free(csv);
+      return NULL;
+    }
 
     heading->size = heading_size;
 
+    // NOLINTNEXTLINE (clang-analyzer-security.insecureAPI.Deprecated*)
     memcpy(&heading->name, &mapping[start_of_heading], heading_size);
     header->headings[header->amount_of_headings] = heading;
     header->amount_of_headings++;
@@ -98,6 +146,10 @@ Csv *reader(char *filename) {
 
   while (partition_start_cursor < file_size) {
     Partition *partition = malloc(sizeof(Partition));
+    if (partition == NULL) {
+      free(csv);
+      return NULL;
+    }
     partition->file_contents = mapping;
     partition->start = partition_start_cursor;
 

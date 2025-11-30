@@ -19,7 +19,15 @@ int echo(int argument_count, char *arguments[]) {
   for (int i = 0; i < csv->amount_of_partitions; i++) {
     thrd_t thread;
 
-    thrd_create(&thread, normalize_csv, csv->partitions[i]);
+    int thread_status = thrd_create(&thread, normalize_csv, csv->partitions[i]);
+
+    if (thread_status != thrd_nomem) {
+      return -1;
+    }
+
+    if (thread_status == thrd_error) {
+      return -1;
+    }
 
     threads[i] = thread;
   }
@@ -27,15 +35,23 @@ int echo(int argument_count, char *arguments[]) {
   for (int i = 0; i < csv->amount_of_partitions; i++) {
     int res = 0;
 
-    thrd_join(threads[i], &res);
+    int thread_status = thrd_join(threads[i], &res);
 
-    if (res) {
-      // exit(1);
-      return 1;
+    if (thread_status == thrd_error) {
+      return -1;
     }
 
-    Payload *payload = csv->partitions[i]->output;
-    char *output = payload->output;
+    if (res) {
+      return -1;
+    }
+
+    const Payload *payload = csv->partitions[i]->output;
+
+    if (payload == NULL) {
+      return -1;
+    }
+
+    const char *output = payload->output;
     int amount_of_output = payload->amount_of_output;
     printf("%.*s", amount_of_output, output);
   }
@@ -49,6 +65,10 @@ int normalize_csv(void *arg) {
   // (end - start) + 1 for inclusive range + 1 for trailing newline
   char *output = malloc((partition->end - partition->start) + 1 + 1);
 
+  if (output == NULL) {
+    return -1;
+  }
+
   int output_cursor = 0;
   long int input_cursor = partition->start;
 
@@ -60,6 +80,12 @@ int normalize_csv(void *arg) {
 
   output[output_cursor] = '\n';
   Payload *payload = malloc(sizeof(Payload));
+
+  if (payload == NULL) {
+    free(output);
+    return -1;
+  }
+
   payload->amount_of_output = output_cursor + 1;
   payload->output = output;
 

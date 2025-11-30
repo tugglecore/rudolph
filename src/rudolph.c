@@ -15,7 +15,7 @@ unsigned long hash(const char *input) {
   unsigned long hash = 5381;
   int c;
 
-  unsigned char *string = (unsigned char *)input;
+  const unsigned char *string = (unsigned char *)input;
 
   while ((c = *string++)) {
     hash = ((hash << 5) + hash) + c;
@@ -49,7 +49,7 @@ int rudolph(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  char *command = argv[0];
+  const char *command = argv[0];
   int argument_count = argc - 1;
   char **arguments = argv + 1;
   switch (hash(command)) {

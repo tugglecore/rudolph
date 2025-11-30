@@ -23,7 +23,7 @@ typedef struct {
   Partition *partitions[];
 } Csv;
 
-Csv *reader(char *filename);
+Csv *reader(const char *filename);
 
 int rudolph(int argc, char *argv[]);
 int slice(int argument_count, char *arguments[]);
