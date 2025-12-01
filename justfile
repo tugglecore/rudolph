@@ -28,4 +28,7 @@ cppcheck:
 clang-tidy:
     run-clang-tidy -p=build src/*.[c,h]
 
-analyze: cppcheck && clang-tidy
+vale:
+    vale $(rg --files | rg '.md[x]?$')
+
+analyze: cppcheck clang-tidy vale
