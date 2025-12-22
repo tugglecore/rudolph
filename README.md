@@ -22,3 +22,8 @@
 - sort/extsort
 - select
 - split/partition
+
+## Contributing
+
+- CMake
+- Meson

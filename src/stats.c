@@ -1,18 +1,23 @@
-#include "commands.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <threads.h>
 
-int collect_stats(void *arg);
+#include "commands.h"
 
-typedef struct {
+int
+collect_stats(void* arg);
+
+typedef struct
+{
   int amount_of_rows;
 } Stats;
 
-int stats(int argument_count, char *arguments[]) {
+int
+stats(int argument_count, char* arguments[])
+{
   (void)argument_count;
 
-  Csv *csv = reader(arguments[0]);
+  Csv* csv = reader(arguments[0]);
 
   thrd_t threads[csv->amount_of_partitions];
 
@@ -46,7 +51,7 @@ int stats(int argument_count, char *arguments[]) {
       return -1;
     }
 
-    const Stats *csv_stats = csv->partitions[i]->output;
+    const Stats* csv_stats = csv->partitions[i]->output;
     total_rows += csv_stats->amount_of_rows;
   }
 
@@ -55,8 +60,10 @@ int stats(int argument_count, char *arguments[]) {
   return 0;
 }
 
-int collect_stats(void *arg) {
-  Partition *partition = (Partition *)arg;
+int
+collect_stats(void* arg)
+{
+  Partition* partition = (Partition*)arg;
 
   int amount_of_rows = 0;
   long int cursor = partition->start;
@@ -70,8 +77,7 @@ int collect_stats(void *arg) {
 
   amount_of_rows++;
 
-  // TODO: Handle case where malloc fails
-  Stats *csv_stats = malloc(sizeof(Stats));
+  Stats* csv_stats = malloc(sizeof(Stats));
 
   if (csv_stats == NULL) {
     return -1;

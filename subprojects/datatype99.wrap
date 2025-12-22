@@ -1,0 +1,9 @@
+[wrap-git]
+method = cmake
+
+url = https://github.com/hirrolot/datatype99.git
+revision = HEAD
+depth = 1
+
+[provide]
+datatype99 = datatype99_dep

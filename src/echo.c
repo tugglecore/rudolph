@@ -1,18 +1,23 @@
-#include "commands.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <threads.h>
 
-int normalize_csv(void *arg);
+#include "commands.h"
 
-typedef struct {
+int
+normalize_csv(void* arg);
+
+typedef struct
+{
   int amount_of_output;
-  char *output;
+  char* output;
 } Payload;
 
-int echo(int argument_count, char *arguments[]) {
+int
+echo(int argument_count, char* arguments[])
+{
   (void)argument_count;
-  Csv *csv = reader(arguments[0]);
+  Csv* csv = reader(arguments[0]);
 
   thrd_t threads[csv->amount_of_partitions];
 
@@ -21,11 +26,13 @@ int echo(int argument_count, char *arguments[]) {
 
     int thread_status = thrd_create(&thread, normalize_csv, csv->partitions[i]);
 
-    if (thread_status != thrd_nomem) {
+    if (thread_status == thrd_nomem) {
+      printf("Out of memory\n");
       return -1;
     }
 
     if (thread_status == thrd_error) {
+      printf("There is an error\n");
       return -1;
     }
 
@@ -45,13 +52,14 @@ int echo(int argument_count, char *arguments[]) {
       return -1;
     }
 
-    const Payload *payload = csv->partitions[i]->output;
+    const Payload* payload = csv->partitions[i]->output;
 
     if (payload == NULL) {
       return -1;
     }
 
-    const char *output = payload->output;
+    print_head(csv);
+    const char* output = payload->output;
     int amount_of_output = payload->amount_of_output;
     printf("%.*s", amount_of_output, output);
   }
@@ -59,11 +67,13 @@ int echo(int argument_count, char *arguments[]) {
   return 1;
 }
 
-int normalize_csv(void *arg) {
-  Partition *partition = (Partition *)arg;
+int
+normalize_csv(void* arg)
+{
+  Partition* partition = (Partition*)arg;
 
   // (end - start) + 1 for inclusive range + 1 for trailing newline
-  char *output = malloc((partition->end - partition->start) + 1 + 1);
+  char* output = malloc((partition->end - partition->start) + 1 + 1);
 
   if (output == NULL) {
     return -1;
@@ -78,8 +88,10 @@ int normalize_csv(void *arg) {
     output_cursor++;
   }
 
+  // TODO: Append newline to end of file
+  // only if there is not a newline present
   output[output_cursor] = '\n';
-  Payload *payload = malloc(sizeof(Payload));
+  Payload* payload = malloc(sizeof(Payload));
 
   if (payload == NULL) {
     free(output);

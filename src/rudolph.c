@@ -1,21 +1,26 @@
-#include "commands.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "commands.h"
+
 #define SLICE 210727929557
 #define STATS 210728208916
 #define ECHO 6385181892
+#define CONCAT 6953399246525
 
-const char *version = "0.1";
+const char* version = "0.1";
 
-void help(const char *command);
+void
+help(const char* command);
 
-unsigned long hash(const char *input) {
+unsigned long
+hash(const char* input)
+{
   unsigned long hash = 5381;
   int c;
 
-  const unsigned char *string = (unsigned char *)input;
+  const unsigned char* string = (unsigned char*)input;
 
   while ((c = *string++)) {
     hash = ((hash << 5) + hash) + c;
@@ -23,7 +28,9 @@ unsigned long hash(const char *input) {
   return hash;
 }
 
-int rudolph(int argc, char *argv[]) {
+int
+rudolph(int argc, char* argv[])
+{
   if (argc == 0) {
     help(NULL);
     return EXIT_FAILURE;
@@ -49,35 +56,37 @@ int rudolph(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  const char *command = argv[0];
+  const char* command = argv[0];
   int argument_count = argc - 1;
-  char **arguments = argv + 1;
+  char** arguments = argv + 1;
   switch (hash(command)) {
-  case SLICE:
-    printf("Running slice...\n");
-    slice(argument_count, arguments);
-    break;
-  case STATS:
-    printf("Running count...\n");
-    stats(argument_count, arguments);
-    break;
-  case ECHO:
-    printf("Running echo...\n");
-    echo(argument_count, arguments);
-    break;
-  default:
-    printf("[ERROR] %s is not a valid command.\n", command);
-    return EXIT_FAILURE;
+    case SLICE:
+      slice(argument_count, arguments);
+      break;
+    case STATS:
+      stats(argument_count, arguments);
+      break;
+    case ECHO:
+      echo(argument_count, arguments);
+      break;
+    case CONCAT:
+      concat(argument_count, arguments);
+      break;
+    default:
+      printf("[ERROR] %s is not a valid command.\n", command);
+      return EXIT_FAILURE;
   }
 
   return 0;
 }
 
-const char *help_text = "\
+const char* help_text = "\
 CSV toolkit \
 ";
 
-void help(const char *command) {
+void
+help(const char* command)
+{
   if (command == NULL) {
     printf("%s\n", help_text);
   }

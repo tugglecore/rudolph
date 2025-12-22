@@ -8,6 +8,7 @@ target_sources(core
         slice.c
         stats.c
 )
+target_include_directories(core PUBLIC .)
 target_compile_features(core PRIVATE c_std_17)
 target_compile_options(core PUBLIC -Werror -Wall -Wextra)
 

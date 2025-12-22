@@ -1,4 +1,20 @@
+# Meson Build directory
 build
+
+# Clangd artifacts
+.cache
+
+# Infer artifacts
+infer-out
+
+# Dependencies
+subprojects/*
+!subprojects/criterion.wrap
+!subprojects/datatype99.wrap
+!subprojects/log.wrap
+!subprojects/log/meson.build
+
+# Unknown - under consideration for deletion
+artifacts
 *.out
 fixtures
-.cache
