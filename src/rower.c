@@ -1,8 +1,8 @@
+#include "commands.h"
+#include "datatype99.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "datatype99.h"
-#include "commands.h"
 
 bool
 is_cell_delimiter(char token)
@@ -47,18 +47,101 @@ build_rower(Csv* csv)
   return block;
 }
 
-Row *
+Row*
 next_row(Rower* rower)
 {
-    // NOLINTNEXTLINE bugprone-multi-level-implicit-pointer-conversion
-    ifLet(*rower, Prepared, csv) {
-        Rower rowing = Rowing(*csv, 0, 0, 0);
-        memcpy(rower, &rowing, sizeof(rowing));
-        
-        return (*csv)->partitions[0]->matrix->rows[0];
-    }
 
-    return NULL;
+  // NOLINTNEXTLINE bugprone-multi-level-implicit-pointer-conversion
+  // ifLet(*rower, Prepared, csv)
+  // {
+  //   Rower rowing = Rowing(*csv, 0, 0, 0);
+  //   memcpy(rower, &rowing, sizeof(rowing));
+  //
+  //   return (*csv)->partitions[0]->matrix->rows[0];
+  // }
+
+  // NOLINTBEGIN bugprone-multi-level-implicit-pointer-conversion
+  match(*rower)
+  {
+    of(Exhausted)
+    {
+      return NULL;
+    }
+    of(Prepared, csv)
+    {
+      Csv* backup_csv = *csv;
+      bool only_one_partition = (*csv)->amount_of_partitions == 1;
+      bool only_one_row = (*csv)->partitions[0]->matrix->amount_of_rows == 1;
+      if (only_one_partition && only_one_row) {
+        Rower exhausted = Exhausted();
+        memcpy(rower, &exhausted, sizeof(exhausted));
+      } else {
+        Rower rowing_rower = Rowing(*csv, 0, 0, 0);
+        memcpy(rower, &rowing_rower, sizeof(rowing_rower));
+      }
+      Row* row = backup_csv->partitions[0]->matrix->rows[0];
+      return row;
+    }
+    of(Rowing, csv, rows_before, current_partition_index, current_row_index)
+    {
+      unsigned long long int next_row_index = *current_row_index + 1;
+      int current_partition_row_count =
+        (*csv)->partitions[*current_partition_index]->matrix->amount_of_rows;
+
+      bool next_row_in_next_partition =
+        next_row_index - *rows_before >= current_partition_row_count;
+
+      if (next_row_in_next_partition) {
+        *rows_before += current_partition_row_count;
+        *current_partition_index += 1;
+        current_partition_row_count =
+          (*csv)->partitions[*current_partition_index]->matrix->amount_of_rows;
+      }
+
+      *current_row_index = next_row_index;
+
+      int current_row_index_in_partition = *current_row_index - *rows_before;
+
+      Row* current_row = (*csv)
+                           ->partitions[*current_partition_index]
+                           ->matrix->rows[current_row_index_in_partition];
+
+      if (*current_partition_index == (*csv)->amount_of_partitions - 1 &&
+          current_row_index_in_partition == current_partition_row_count - 1) {
+        Rower exhausted = Exhausted();
+        memcpy(rower, &exhausted, sizeof(exhausted));
+      }
+
+      return current_row;
+    }
+    // NOLINTEND bugprone-multi-level-implicit-pointer-conversion
+  }
+
+  return NULL;
+}
+
+// TODO We are assuming that a prepared rower
+// has atleast one row. We should determine
+// if it is possible if a rower needs atleast
+// one row or not. Probably we fail to create a
+// rower if there are no rows. In the same direction
+// if a rower cannot be built b/c a CSV partition
+// has no rows then the program should fail early
+bool
+has_more_rows(Rower* rower)
+{
+  match(*rower)
+  {
+    of(Exhausted)
+    {
+      return false;
+    }
+    otherwise
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 int
@@ -85,10 +168,11 @@ build_matrix(void* arg)
 
     // TODO: Better error handling
     if (row == NULL) {
-        return 1;
+      return 1;
     }
 
-    row->start_index = 
+    row->start_index = row_anchor;
+
     row->amount_of_cells = 0;
 
     long int cell_trailer = row_anchor;
@@ -125,7 +209,12 @@ build_matrix(void* arg)
       cell_trailer =
         cell_seeker == partition_end ? cell_seeker : cell_seeker + 1;
 
-      if (!is_cell_delimiter(file_contents[cell_seeker])) {
+      if (!is_cell_delimiter(file_contents[cell_seeker]) ||
+          (cell_seeker == partition_end &&
+           is_cell_delimiter(file_contents[cell_seeker]))) {
+        row->end_index =
+          cell_seeker == partition_end ? cell_seeker : cell_seeker - 1;
+
         break;
       }
     }

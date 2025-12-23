@@ -8,20 +8,17 @@
 - stats
 - headers/behead/slice
 - concat
+- diff
+- format
+- split/partition
+
+- deduplicate
 - edit
 - enum
 - fill
-- padding
-- format
-- deduplicate
-- diff
-- exclude
-- explode/extedup
-- foreach
-- json/jsonl
+- replace
 - sort/extsort
 - select
-- split/partition
 
 ## Contributing
 

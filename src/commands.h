@@ -64,11 +64,16 @@ typedef long long unsigned int rows_before_current_partition;
 typedef long long unsigned int current_partition_index;
 typedef long long unsigned int current_row_index;
 
-datatype(
-  Rower,
-  (Prepared, Csv *),
-  (Rowing, Csv *, rows_before_current_partition, current_partition_index, current_row_index)
+// clang-format off
+datatype(Rower,
+  (Prepared, Csv*),
+  (Rowing, 
+    Csv*, rows_before_current_partition, current_partition_index,
+    current_row_index
+  ),
+  (Exhausted)
 );
+// clang-format on
 
 Cell*
 allocate_cell(Cell cell);
@@ -83,9 +88,15 @@ int
 concat(int argument_count, char* arguments[]);
 
 int
+copy_head(Csv* csv, unsigned char* destination, bool add_newline);
+
+int
 echo(int argument_count, char* arguments[]);
 
-Row *
+bool
+has_more_rows(Rower*);
+
+Row*
 next_row(Rower* rower);
 
 int
